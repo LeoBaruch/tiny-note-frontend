@@ -1,95 +1,305 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
 
-export default function Home() {
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  Card, 
+  List, 
+  Button, 
+  Input, 
+  Tag, 
+  Space, 
+  Typography, 
+  Empty, 
+  Spin,
+  message,
+  Popconfirm,
+  Tooltip
+} from 'antd';
+import { 
+  PlusOutlined, 
+  EditOutlined, 
+  DeleteOutlined,
+  EyeOutlined,
+  CalendarOutlined,
+  TagOutlined
+} from '@ant-design/icons';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuthStore, useNoteStore } from '@/store';
+import { noteAPI } from '@/services/api';
+import { Note } from '@/types';
+import styles from './page.module.css';
+
+const { Title, Text, Paragraph } = Typography;
+const { Search } = Input;
+
+export default function HomePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { isAuthenticated } = useAuthStore();
+  const { notes, setNotes, deleteNote, setLoading, isLoading } = useNoteStore();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
+
+  const loadNotes = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { notes: notesData } = await noteAPI.getNotes();
+      setNotes(notesData);
+      setFilteredNotes(notesData);
+    } catch (error: unknown) {
+      message.error('加载笔记失败');
+      console.error('Failed to load notes:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [setNotes, setLoading]);
+
+  const filterNotes = useCallback((query: string, tag?: string | null, category?: string | null) => {
+    let filtered = notes;
+
+    if (query) {
+      filtered = filtered.filter(note => 
+        note.title.toLowerCase().includes(query.toLowerCase()) ||
+        JSON.stringify(note.content).toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    if (tag) {
+      filtered = filtered.filter(note => note.tags.includes(tag));
+    }
+
+    if (category) {
+      filtered = filtered.filter(note => note.category === category);
+    }
+
+    setFilteredNotes(filtered);
+  }, [notes]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+
+    loadNotes();
+  }, [isAuthenticated, router, loadNotes]);
+
+  useEffect(() => {
+    // 处理URL搜索参数
+    const search = searchParams.get('search');
+    const tag = searchParams.get('tag');
+    const category = searchParams.get('category');
+    
+    if (search) {
+      setSearchQuery(search);
+      filterNotes(search, tag, category);
+    } else if (tag || category) {
+      filterNotes('', tag, category);
+    } else {
+      setFilteredNotes(notes);
+    }
+  }, [searchParams, notes, filterNotes]);
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    if (value.trim()) {
+      router.push(`/?search=${encodeURIComponent(value)}`);
+    } else {
+      router.push('/');
+    }
+  };
+
+  const handleCreateNote = () => {
+    router.push('/note/new');
+  };
+
+  const handleEditNote = (note: Note) => {
+    router.push(`/note/${note.id}/edit`);
+  };
+
+  const handleViewNote = (note: Note) => {
+    router.push(`/note/${note.id}`);
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      await noteAPI.deleteNote(noteId);
+      deleteNote(noteId);
+      message.success('笔记删除成功');
+    } catch {
+      message.error('删除笔记失败');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const renderNoteContent = (content: unknown[]) => {
+    if (!content || content.length === 0) return '暂无内容';
+    
+    // 提取纯文本内容
+    const extractText = (nodes: unknown[]): string => {
+      return nodes.map((node: unknown) => {
+        if (typeof node === 'object' && node !== null && 'text' in node) {
+          return (node as { text: string }).text;
+        }
+        if (typeof node === 'object' && node !== null && 'children' in node) {
+          return extractText((node as { children: unknown[] }).children);
+        }
+        return '';
+      }).join(' ').trim();
+    };
+
+    const text = extractText(content);
+    return text.length > 100 ? `${text.substring(0, 100)}...` : text;
+  };
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+      <div className={styles.header}>
+        <div>
+          <Title level={2} style={{ margin: 0 }}>
+            我的笔记
+          </Title>
+          <Text type="secondary">
+            共 {filteredNotes.length} 篇笔记
+          </Text>
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <Space>
+          <Search
+            placeholder="搜索笔记..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onSearch={handleSearch}
+            style={{ width: 300 }}
+            allowClear
           />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />}
+            onClick={handleCreateNote}
+            size="large"
+          >
+            新建笔记
+          </Button>
+        </Space>
+      </div>
+
+      {isLoading ? (
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+          <Spin size="large" />
+        </div>
+      ) : filteredNotes.length === 0 ? (
+        <Empty
+          description="暂无笔记"
+          style={{ marginTop: '100px' }}
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <Button type="primary" onClick={handleCreateNote}>
+            创建第一篇笔记
+          </Button>
+        </Empty>
+      ) : (
+        <List
+          grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 2, xl: 3, xxl: 4 }}
+          dataSource={filteredNotes}
+          renderItem={(note) => (
+            <List.Item>
+              <Card
+                hoverable
+                className={styles.noteCard}
+                actions={[
+                  <Tooltip key="view" title="查看">
+                    <Button 
+                      type="text" 
+                      icon={<EyeOutlined />} 
+                      onClick={() => handleViewNote(note)}
+                    />
+                  </Tooltip>,
+                  <Tooltip key="edit" title="编辑">
+                    <Button 
+                      type="text" 
+                      icon={<EditOutlined />} 
+                      onClick={() => handleEditNote(note)}
+                    />
+                  </Tooltip>,
+                  <Tooltip key="delete" title="删除">
+                    <Popconfirm
+                      title="确定要删除这篇笔记吗？"
+                      onConfirm={() => handleDeleteNote(note.id)}
+                      okText="确定"
+                      cancelText="取消"
+                    >
+                      <Button 
+                        type="text" 
+                        danger 
+                        icon={<DeleteOutlined />} 
+                      />
+                    </Popconfirm>
+                  </Tooltip>,
+                ]}
+              >
+                <Card.Meta
+                  title={
+                    <div className={styles.noteTitle}>
+                      <Text strong ellipsis={{ tooltip: note.title }}>
+                        {note.title}
+                      </Text>
+                      {note.isPublic && (
+                        <Tag color="green">公开</Tag>
+                      )}
+                    </div>
+                  }
+                  description={
+                    <div className={styles.noteContent}>
+                      <Paragraph ellipsis={{ rows: 3 }}>
+                        {renderNoteContent(note.content)}
+                      </Paragraph>
+                      
+                      <div className={styles.noteMeta}>
+                        <Space size="small">
+                          <CalendarOutlined />
+                          <Text type="secondary" style={{ fontSize: 12 }}>
+                            {formatDate(note.updatedAt)}
+                          </Text>
+                        </Space>
+                        
+                        {note.tags.length > 0 && (
+                          <Space size="small">
+                            <TagOutlined />
+                            <Space size={4}>
+                              {note.tags.slice(0, 3).map(tag => (
+                                <Tag key={tag} color="blue">
+                                  {tag}
+                                </Tag>
+                              ))}
+                              {note.tags.length > 3 && (
+                                <Text type="secondary" style={{ fontSize: 12 }}>
+                                  +{note.tags.length - 3}
+                                </Text>
+                              )}
+                            </Space>
+                          </Space>
+                        )}
+                      </div>
+                    </div>
+                  }
+                />
+              </Card>
+            </List.Item>
+          )}
+        />
+      )}
     </div>
   );
 }
