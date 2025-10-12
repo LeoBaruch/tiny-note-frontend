@@ -19,8 +19,9 @@ export default function RegisterPage() {
   const onFinish = async (values: RegisterForm) => {
     try {
       setLoading(true);
-      const { user, token } = await authAPI.register(values);
-      login(user, token);
+      const res = await authAPI.register(values);
+      // login(user, token);
+      console.log('register res:', res);
       message.success('注册成功！');
       router.push('/');
     } catch (error: unknown) {

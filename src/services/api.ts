@@ -19,14 +19,12 @@ import {
   mockUsers
 } from './mockData';
 
-// 使用模拟数据服务，暂时不需要axios
-// 当有真实后端API时，可以取消注释以下代码
-/*
+// 使用真实后端API：axios
 import axios from 'axios';
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+  baseURL: 'http://localhost:8080/api/tiny-note',
   timeout: 10000,
 });
 
@@ -54,12 +52,12 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token过期，清除本地存储
       localStorage.removeItem('auth-storage');
-      window.location.href = '/login';
+      // 兼容 basePath '/tiny-note'
+      window.location.href = '/tiny-note/login';
     }
     return Promise.reject(error);
   }
 );
-*/
 
 // 用户认证API
 export const authAPI = {
@@ -67,8 +65,14 @@ export const authAPI = {
     return await mockAuthService.login(data.email, data.password);
   },
 
-  register: async (data: RegisterForm): Promise<{ user: User; token: string }> => {
-    return await mockAuthService.register(data.username, data.email, data.password);
+  register: async (data: RegisterForm): Promise<any> => {
+    // 调用真实后端注册接口
+    const res = await api.post('/auth/register', {
+      username: data.username,
+      email: data.email,
+      password: data.password,
+    });
+    return res.data;
   },
 
   logout: async (): Promise<void> => {
