@@ -153,7 +153,7 @@ export default function SideBar() {
   ];
 
   if (!user) {
-    return null;
+    // return null;
   }
 
   return (
@@ -170,13 +170,13 @@ export default function SideBar() {
           <Avatar 
             size="small" 
             icon={<UserOutlined />} 
-            src={user.avatar || undefined}
+            src={user?.avatar}
             style={{ backgroundColor: '#1890ff' }}
           />
           <div>
-            <Text strong style={{ fontSize: 12 }}>{user.username}</Text>
+            <Text strong style={{ fontSize: 12 }}>{user?.username || '用户'}</Text>
             <br />
-            <Text type="secondary" style={{ fontSize: 10 }}>{user.email}</Text>
+            <Text type="secondary" style={{ fontSize: 10 }}>{user?.email || '无邮箱'}</Text>
           </div>
         </div>
         <Button
@@ -214,9 +214,9 @@ export default function SideBar() {
               <Avatar 
                 size="small" 
                 icon={<UserOutlined />} 
-                src={user.avatar || undefined}
+                src={user?.avatar || undefined}
               />
-              {!sidebarCollapsed && <Text>{user.username}</Text>}
+              {!sidebarCollapsed && <Text>{user?.username || '用户'}</Text>}
             </Space>
           </Button>
         </Dropdown>
