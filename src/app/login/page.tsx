@@ -19,8 +19,8 @@ export default function LoginPage() {
   const onFinish = async (values: LoginForm) => {
     try {
       setLoading(true);
-      const { user, token } = await authAPI.login(values);
-      login(user, token);
+      const {  token } = await authAPI.login(values);
+      login( token);
       message.success('登录成功！');
       router.push('/');
     } catch (error: unknown) {

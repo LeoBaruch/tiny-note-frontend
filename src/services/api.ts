@@ -62,7 +62,11 @@ api.interceptors.response.use(
 // 用户认证API
 export const authAPI = {
   login: async (data: LoginForm): Promise<{ user: User; token: string }> => {
-    return await mockAuthService.login(data.email, data.password);
+    const res = await api.post('/auth/login', {
+      email: data.email,
+      password: data.password,
+    });
+    return res.data;
   },
 
   register: async (data: RegisterForm): Promise<any> => {
