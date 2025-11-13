@@ -7,8 +7,6 @@ export const mockUsers: User[] = [
     username: 'demo',
     email: 'demo@example.com',
     avatar: '',
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2024-01-01T00:00:00Z',
   },
 ];
 

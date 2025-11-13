@@ -17,6 +17,7 @@ import { Menu, Button, Input, Avatar, Dropdown, Space, Typography } from "antd";
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore, useNoteStore, useUIStore } from '@/store';
 import { tagAPI, categoryAPI } from '@/services/api';
+import { backendBasePath } from '@/constant';
 
 const { Text } = Typography;
 
@@ -167,10 +168,11 @@ export default function SideBar() {
         justifyContent: 'space-between'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img src="" alt="" />
           <Avatar 
             size="small" 
             icon={<UserOutlined />} 
-            src={user?.avatar}
+            src={user?.avatar ? `${backendBasePath}${user?.avatar}` : undefined}
             style={{ backgroundColor: '#1890ff' }}
           />
           <div>
@@ -214,7 +216,7 @@ export default function SideBar() {
               <Avatar 
                 size="small" 
                 icon={<UserOutlined />} 
-                src={user?.avatar || undefined}
+                src={user?.avatar ? `${backendBasePath}${user?.avatar}` : undefined}
               />
               {!sidebarCollapsed && <Text>{user?.username || '用户'}</Text>}
             </Space>

@@ -14,13 +14,15 @@ const { Title, Text } = Typography;
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuthStore();
+  const { login, setUser } = useAuthStore();
 
   const onFinish = async (values: LoginForm) => {
     try {
       setLoading(true);
-      const {  token } = await authAPI.login(values);
+      const {  token, user_info } = await authAPI.login(values);
+      debugger
       login( token);
+      setUser(user_info);
       message.success('登录成功！');
       router.push('/');
     } catch (error: unknown) {

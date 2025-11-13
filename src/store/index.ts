@@ -4,11 +4,10 @@ import { User, Note, Tag, Category } from '@/types';
 
 interface AuthState {
   user: User | null;
-  isAuthenticated: boolean;
   token: string | null;
   login: ( token: string) => void;
   logout: () => void;
-  updateUser: (user: Partial<User>) => void;
+  setUser: (user?: User) => void;
 }
 
 interface NoteState {
@@ -41,13 +40,12 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: true,
       token: null,
       login: ( token: string) =>
-        set({  isAuthenticated: true, token }),
+        set({  token }),
       logout: () =>
-        set({ user: null, isAuthenticated: false, token: null }),
-      updateUser: (updates: Partial<User>) =>
-        set((state) => ({
-          user: state.user ? { ...state.user, ...updates } : null,
-        })),
+        set({ user: null, token: null }),
+      
+      setUser: (user: User | undefined) =>
+        set({ user: user || null }),
     }),
     {
       name: 'auth-storage',

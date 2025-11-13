@@ -9,6 +9,7 @@ import {
   Category,
   SearchParams 
 } from '@/types';
+import { backendBasePath } from '@/constant';
 
 // 导入模拟数据服务
 import { 
@@ -24,7 +25,7 @@ import axios from 'axios';
 
 // 创建axios实例
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api/tiny-note',
+  baseURL: backendBasePath,
   timeout: 10000,
 });
 
@@ -61,7 +62,7 @@ api.interceptors.response.use(
 
 // 用户认证API
 export const authAPI = {
-  login: async (data: LoginForm): Promise<{ user: User; token: string }> => {
+  login: async (data: LoginForm): Promise<{ user_info: User; token: string }> => {
     const res = await api.post('/auth/login', {
       email: data.email,
       password: data.password,
