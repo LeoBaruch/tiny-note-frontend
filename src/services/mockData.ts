@@ -218,8 +218,8 @@ export const mockAuthService = {
       username,
       email,
       avatar: '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
     
     mockUsers.push(newUser);

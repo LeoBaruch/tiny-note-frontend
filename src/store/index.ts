@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { User, Note, Tag, Category } from '@/types';
+import { AUTH_STORAGE_KEY } from '@/constant';
 
 interface AuthState {
   user: User | null;
@@ -48,7 +49,7 @@ export const useAuthStore = create<AuthState>()(
         set({ user: user || null }),
     }),
     {
-      name: 'auth-storage',
+      name: AUTH_STORAGE_KEY,
       partialize: (state) => ({ user: state.user, token: state.token }),
     }
   )

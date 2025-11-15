@@ -9,7 +9,7 @@ import {
   Category,
   SearchParams 
 } from '@/types';
-import { backendBasePath } from '@/constant';
+import { backendBasePath, AUTH_STORAGE_KEY } from '@/constant';
 
 // 导入模拟数据服务
 import { 
@@ -32,8 +32,8 @@ const api = axios.create({
 // 请求拦截器 - 添加token
 api.interceptors.request.use(
   (config: any) => {
-    const token = localStorage.getItem('auth-storage') 
-      ? JSON.parse(localStorage.getItem('auth-storage')!).state.token 
+    const token = localStorage.getItem(AUTH_STORAGE_KEY) 
+      ? JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)!).state.token 
       : null;
     
     if (token) {
@@ -52,7 +52,7 @@ api.interceptors.response.use(
   (error: any) => {
     if (error.response?.status === 401) {
       // Token过期，清除本地存储
-      localStorage.removeItem('auth-storage');
+      localStorage.removeItem(AUTH_STORAGE_KEY);
       // 兼容 basePath '/tiny-note'
       window.location.href = '/tiny-note/login';
     }
