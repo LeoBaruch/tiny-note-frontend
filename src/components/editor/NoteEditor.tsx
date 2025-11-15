@@ -62,6 +62,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
           <BlockButton format="heading-one" icon="looks_one" />
           <BlockButton format="heading-two" icon="looks_two" />
           <BlockButton format="heading-three" icon="looks_3" />
+          <BlockButton format="paragraph" icon="text_fields" />
           <BlockButton format="block-quote" icon="format_quote" />
           <BlockButton format="numbered-list" icon="format_list_numbered" />
           <BlockButton format="bulleted-list" icon="format_list_bulleted" />
@@ -235,6 +236,12 @@ const Element = ({ attributes, children, element }: ElementProps) => {
         <ol style={style} {...attributes}>
           {children}
         </ol>
+      );
+    case 'paragraph':
+      return (
+        <p style={style} {...attributes}>
+          {children}
+        </p>
       );
     default:
       return (

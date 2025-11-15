@@ -8,6 +8,7 @@ import { useAuthStore, useNoteStore } from '@/store';
 import { noteAPI } from '@/services/api';
 import { CreateNoteForm } from '@/types';
 import NoteEditor from '@/components/editor/NoteEditor';
+import { CustomElement } from '@/components/editor/types';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -18,7 +19,7 @@ export default function NewNotePage() {
   const { tags, categories, addNote } = useNoteStore();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [content, setContent] = useState([
+  const [content, setContent] = useState<CustomElement[]>([
     {
       type: 'paragraph',
       children: [{ text: '' }],
@@ -165,7 +166,7 @@ export default function NewNotePage() {
             <div style={{ border: '1px solid #d9d9d9', borderRadius: '6px' }}>
               <NoteEditor
                 value={content}
-                onChange={setContent}
+                onChange={(val) => setContent(val as CustomElement[])}
                 placeholder="开始编写您的笔记..."
               />
             </div>
