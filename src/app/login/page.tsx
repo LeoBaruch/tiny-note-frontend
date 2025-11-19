@@ -20,7 +20,6 @@ export default function LoginPage() {
     try {
       setLoading(true);
       const {  token, user_info } = await authAPI.login(values);
-      debugger
       login( token);
       setUser(user_info);
       message.success('登录成功！');

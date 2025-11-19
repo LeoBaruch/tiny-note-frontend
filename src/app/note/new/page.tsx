@@ -6,9 +6,11 @@ import { Card, Form, Input, Button, Select, Switch, message, Space, Typography }
 import { SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useAuthStore, useNoteStore } from '@/store';
 import { noteAPI } from '@/services/api';
-import { CreateNoteForm } from '@/types';
+import { CreateNoteForm, Note } from '@/types';
 import NoteEditor from '@/components/editor/NoteEditor';
 import { CustomElement } from '@/components/editor/types';
+
+type CreateNoteFormValues = Omit<CreateNoteForm, 'content'> ;
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -26,7 +28,7 @@ export default function NewNotePage() {
     },
   ]);
 
-  const onFinish = async (values: CreateNoteForm) => {
+  const onFinish = async (values: CreateNoteFormValues) => {
     if (!user) {
       message.error('用户未登录');
       return;
@@ -34,13 +36,44 @@ export default function NewNotePage() {
 
     try {
       setLoading(true);
-      const noteData = {
+      const noteData: CreateNoteForm = {
         ...values,
-        content,
-        userId: user.id,
+
+        content: JSON.stringify(content),
       };
 
-      const newNote = await noteAPI.createNote(noteData);
+      if(values.tags) {
+        noteData.tags = JSON.stringify(values.tags);
+      }
+
+      const createdNote = await noteAPI.createNote(noteData);
+
+
+      let parsedContent: any[] = [];
+      if (createdNote.content) {
+        try {
+          parsedContent = JSON.parse(createdNote.content as unknown as string) as any[];
+        } catch (error: any) {
+          console.error('解析笔记内容失败:', error);
+          parsedContent = [];
+        }
+      }
+
+      let parsedTags: string[] = [];
+      if(createdNote.tags) {
+        try {
+          parsedTags = JSON.parse(createdNote.tags as unknown as string) as string[];
+        } catch (error: any) {
+          console.error('解析笔记标签失败:', error);
+          parsedTags = [];
+        }
+      }
+
+      const newNote: Note = {
+        ...createdNote,
+        content: parsedContent,
+        tags: parsedTags,
+      };
       addNote(newNote);
       message.success('笔记创建成功！');
       router.push('/');

@@ -10,6 +10,7 @@ import {
   SearchParams 
 } from '@/types';
 import { backendBasePath, AUTH_STORAGE_KEY } from '@/constant';
+import { message } from 'antd';
 
 // 导入模拟数据服务
 import { 
@@ -32,10 +33,17 @@ const api = axios.create({
 // 请求拦截器 - 添加token
 api.interceptors.request.use(
   (config: any) => {
-    const token = localStorage.getItem(AUTH_STORAGE_KEY) 
-      ? JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY)!).state.token 
-      : null;
-    
+    const authStorage = localStorage.getItem(AUTH_STORAGE_KEY);
+
+    let token: string | null = null;
+    if (authStorage) {
+      try {
+        token = JSON.parse(authStorage)?.state?.token ?? null;
+      } catch {
+        token = null;
+      }
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -52,9 +60,10 @@ api.interceptors.response.use(
   (error: any) => {
     if (error.response?.status === 401) {
       // Token过期，清除本地存储
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+      // localStorage.removeItem(AUTH_STORAGE_KEY);
       // 兼容 basePath '/tiny-note'
       window.location.href = '/tiny-note/login';
+      message.error('登录过期，请重新登录');
     }
     return Promise.reject(error);
   }
@@ -94,8 +103,9 @@ export const authAPI = {
 
 // 笔记API
 export const noteAPI = {
-  getNotes: async (params?: SearchParams): Promise<{ notes: Note[]; total: number }> => {
-    return await mockNoteService.getNotes();
+  getNotes: async (params?: SearchParams): Promise<Note[]> => {
+    const res = await api.get('/notes', { params });
+    return res?.data  ;
   },
 
   getNote: async (id: string): Promise<Note> => {
@@ -108,7 +118,8 @@ export const noteAPI = {
   },
 
   createNote: async (data: CreateNoteForm): Promise<Note> => {
-    return await mockNoteService.createNote(data);
+    const res = await api.post('/notes', data);
+    return res.data;
   },
 
   updateNote: async (id: string, data: Partial<CreateNoteForm>): Promise<Note> => {

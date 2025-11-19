@@ -10,14 +10,14 @@ export interface User {
 export interface Note {
   id: string;
   title: string;
-  content: any[]; // Slate.js content
-  tags: string[];
+  content: any[]; // Slate.js content, 传给后端需要转换为json字符串
   category: string;
-  isPublic: boolean;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
+  tags?: string[];
+  isPublic?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
+
 
 export interface Tag {
   id: string;
@@ -47,10 +47,10 @@ export interface RegisterForm {
 
 export interface CreateNoteForm {
   title: string;
-  content: any[];
-  tags: string[];
+  content: string;
   category: string;
-  isPublic: boolean;
+  tags?: string;
+  isPublic?: boolean;
 }
 
 export interface UpdateNoteForm extends Partial<CreateNoteForm> {

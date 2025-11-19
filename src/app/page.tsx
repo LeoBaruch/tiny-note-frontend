@@ -35,70 +35,54 @@ const { Search } = Input;
 export default function HomePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated } = useAuthStore();
-  const { notes, setNotes, deleteNote, setLoading, isLoading } = useNoteStore();
+  const { token } = useAuthStore();
+  const { notes, setNotes, deleteNote } = useNoteStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
+  const [pageLoading, setPageLoading] = useState(false);
 
   const loadNotes = useCallback(async () => {
     try {
-      setLoading(true);
-      const { notes: notesData } = await noteAPI.getNotes();
-      setNotes(notesData);
-      setFilteredNotes(notesData);
+      setPageLoading(true);
+      const notesData = await noteAPI.getNotes();
+      
+      // 处理 tags：如果是字符串，解析为数组
+      const processedNotes = Array.isArray(notesData) ? notesData.map((note: Note) => {
+        let tags: string[] = [];
+        if (note.tags) {
+          if (typeof note.tags === 'string') {
+            try {
+              tags = JSON.parse(note.tags);
+            } catch {
+              tags = [];
+            }
+          } else if (Array.isArray(note.tags)) {
+            tags = note.tags;
+          }
+        }
+        return {
+          ...note,
+          tags,
+        };
+      }) : [];
+      
+      setNotes(processedNotes);
+      setFilteredNotes(processedNotes);
     } catch (error: unknown) {
       message.error('加载笔记失败');
       console.error('Failed to load notes:', error);
     } finally {
-      setLoading(false);
+      setPageLoading(false);
     }
-  }, [setNotes, setLoading]);
+  }, [setNotes]);
 
-  const filterNotes = useCallback((query: string, tag?: string | null, category?: string | null) => {
-    let filtered = notes;
-
-    if (query) {
-      filtered = filtered.filter(note => 
-        note.title.toLowerCase().includes(query.toLowerCase()) ||
-        JSON.stringify(note.content).toLowerCase().includes(query.toLowerCase())
-      );
-    }
-
-    if (tag) {
-      filtered = filtered.filter(note => note.tags.includes(tag));
-    }
-
-    if (category) {
-      filtered = filtered.filter(note => note.category === category);
-    }
-
-    setFilteredNotes(filtered);
-  }, [notes]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
+    if (!token) return;
 
     loadNotes();
-  }, [isAuthenticated, router, loadNotes]);
+  }, [token, loadNotes]);
 
-  useEffect(() => {
-    // 处理URL搜索参数
-    const search = searchParams.get('search');
-    const tag = searchParams.get('tag');
-    const category = searchParams.get('category');
-    
-    if (search) {
-      setSearchQuery(search);
-      filterNotes(search, tag, category);
-    } else if (tag || category) {
-      filterNotes('', tag, category);
-    } else {
-      setFilteredNotes(notes);
-    }
-  }, [searchParams, notes, filterNotes]);
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
@@ -131,7 +115,10 @@ export default function HomePage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) {
+      return '未知时间';
+    }
     return new Date(dateString).toLocaleDateString('zh-CN', {
       year: 'numeric',
       month: 'short',
@@ -146,7 +133,7 @@ export default function HomePage() {
     
     // 提取纯文本内容
     const extractText = (nodes: unknown[]): string => {
-      return nodes.map((node: unknown) => {
+      return Array.isArray(nodes) ? nodes.map((node: unknown) => {
         if (typeof node === 'object' && node !== null && 'text' in node) {
           return (node as { text: string }).text;
         }
@@ -154,14 +141,14 @@ export default function HomePage() {
           return extractText((node as { children: unknown[] }).children);
         }
         return '';
-      }).join(' ').trim();
+      }).join(' ').trim() : '';
     };
 
     const text = extractText(content);
     return text.length > 100 ? `${text.substring(0, 100)}...` : text;
   };
 
-  if (!isAuthenticated) {
+  if (!token) {
     return null;
   }
 
@@ -173,7 +160,7 @@ export default function HomePage() {
             我的笔记
           </Title>
           <Text type="secondary">
-            共 {filteredNotes.length} 篇笔记
+            共 {filteredNotes?.length ?? 0} 篇笔记
           </Text>
         </div>
         <Space>
@@ -196,11 +183,11 @@ export default function HomePage() {
         </Space>
       </div>
 
-      {isLoading ? (
+      {pageLoading ? (
         <div style={{ textAlign: 'center', padding: '50px' }}>
           <Spin size="large" />
         </div>
-      ) : filteredNotes.length === 0 ? (
+      ) : (filteredNotes?.length) === 0 ? (
         <Empty
           description="暂无笔记"
           style={{ marginTop: '100px' }}
@@ -212,7 +199,7 @@ export default function HomePage() {
       ) : (
         <List
           grid={{ gutter: 16, xs: 1, sm: 1, md: 2, lg: 2, xl: 3, xxl: 4 }}
-          dataSource={filteredNotes}
+          dataSource={filteredNotes ?? []}
           renderItem={(note) => (
             <List.Item>
               <Card
@@ -269,23 +256,23 @@ export default function HomePage() {
                       <div className={styles.noteMeta}>
                         <Space size="small">
                           <CalendarOutlined />
-                          <Text type="secondary" style={{ fontSize: 12 }}>
-                            {formatDate(note.updatedAt)}
+                        <Text type="secondary" style={{ fontSize: 12 }}>
+                          {formatDate(note.updated_at || (note as any).updatedAt)}
                           </Text>
                         </Space>
                         
-                        {note.tags.length > 0 && (
+                      {(note.tags?.length ?? 0) > 0 && (
                           <Space size="small">
                             <TagOutlined />
                             <Space size={4}>
-                              {note.tags.slice(0, 3).map(tag => (
+                            {(note.tags ?? []).slice(0, 3).map(tag => (
                                 <Tag key={tag} color="blue">
                                   {tag}
                                 </Tag>
                               ))}
-                              {note.tags.length > 3 && (
+                            {(note.tags?.length ?? 0) > 3 && (
                                 <Text type="secondary" style={{ fontSize: 12 }}>
-                                  +{note.tags.length - 3}
+                                +{(note.tags?.length ?? 0) - 3}
                                 </Text>
                               )}
                             </Space>

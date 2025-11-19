@@ -168,13 +168,16 @@ export default function SideBar() {
         justifyContent: 'space-between'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src="" alt="" />
-          <Avatar 
-            size="small" 
-            icon={<UserOutlined />} 
-            src={user?.avatar ? `${backendBasePath}${user?.avatar}` : undefined}
-            style={{ backgroundColor: '#1890ff' }}
-          />
+          {
+            !!user?.avatar && (
+              <Avatar 
+                size="small" 
+                icon={<UserOutlined />} 
+                src={user?.avatar ? `${backendBasePath}${user?.avatar}` : undefined}
+                style={{ backgroundColor: '#1890ff' }}
+              />
+            )
+          }
           <div>
             <Text strong style={{ fontSize: 12 }}>{user?.username || '用户'}</Text>
             <br />
@@ -213,11 +216,15 @@ export default function SideBar() {
         >
           <Button type="text" style={{ width: '100%' }}>
             <Space>
-              <Avatar 
-                size="small" 
-                icon={<UserOutlined />} 
-                src={user?.avatar ? `${backendBasePath}${user?.avatar}` : undefined}
-              />
+              {
+                !!user?.avatar && (
+                  <Avatar 
+                    size="small" 
+                    icon={<UserOutlined />} 
+                    src={user?.avatar ? `${backendBasePath}${user?.avatar}` : undefined}
+                  />
+                )
+              }
               {!sidebarCollapsed && <Text>{user?.username || '用户'}</Text>}
             </Space>
           </Button>
