@@ -9,6 +9,7 @@ import { noteAPI } from '@/services/api';
 import { CreateNoteForm, Note } from '@/types';
 import NoteEditor from '@/components/editor/NoteEditor';
 import { CustomElement } from '@/components/editor/types';
+import { DEFAULT_NOTE_CONTENT, parseNoteContent, parseNoteTags } from '@/utils/note';
 
 type CreateNoteFormValues = Omit<CreateNoteForm, 'content'> ;
 
@@ -21,12 +22,7 @@ export default function NewNotePage() {
   const { tags, categories, addNote } = useNoteStore();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [content, setContent] = useState<CustomElement[]>([
-    {
-      type: 'paragraph',
-      children: [{ text: '' }],
-    },
-  ]);
+  const [content, setContent] = useState<CustomElement[]>(DEFAULT_NOTE_CONTENT);
 
   const onFinish = async (values: CreateNoteFormValues) => {
     if (!user) {
@@ -49,30 +45,10 @@ export default function NewNotePage() {
       const createdNote = await noteAPI.createNote(noteData);
 
 
-      let parsedContent: any[] = [];
-      if (createdNote.content) {
-        try {
-          parsedContent = JSON.parse(createdNote.content as unknown as string) as any[];
-        } catch (error: any) {
-          console.error('解析笔记内容失败:', error);
-          parsedContent = [];
-        }
-      }
-
-      let parsedTags: string[] = [];
-      if(createdNote.tags) {
-        try {
-          parsedTags = JSON.parse(createdNote.tags as unknown as string) as string[];
-        } catch (error: any) {
-          console.error('解析笔记标签失败:', error);
-          parsedTags = [];
-        }
-      }
-
       const newNote: Note = {
         ...createdNote,
-        content: parsedContent,
-        tags: parsedTags,
+        content: parseNoteContent(createdNote.content),
+        tags: parseNoteTags(createdNote.tags),
       };
       addNote(newNote);
       message.success('笔记创建成功！');

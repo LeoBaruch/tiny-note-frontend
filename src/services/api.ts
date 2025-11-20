@@ -105,16 +105,12 @@ export const authAPI = {
 export const noteAPI = {
   getNotes: async (params?: SearchParams): Promise<Note[]> => {
     const res = await api.get('/notes', { params });
-    return res?.data  ;
+    return res.data;
   },
 
   getNote: async (id: string): Promise<Note> => {
-    const notes = await mockNoteService.getNotes();
-    const note = notes.notes.find(n => n.id === id);
-    if (!note) {
-      throw new Error('笔记不存在');
-    }
-    return note;
+    const res = await api.get(`/notes/${id}`);
+    return res.data;
   },
 
   createNote: async (data: CreateNoteForm): Promise<Note> => {
@@ -123,15 +119,17 @@ export const noteAPI = {
   },
 
   updateNote: async (id: string, data: Partial<CreateNoteForm>): Promise<Note> => {
-    return await mockNoteService.updateNote(id, data);
+    const res = await api.put(`/notes/${id}`, data);
+    return res.data;
   },
 
   deleteNote: async (id: string): Promise<void> => {
-    await mockNoteService.deleteNote(id);
+    await api.delete(`/notes/${id}`);
   },
 
   searchNotes: async (query: string): Promise<Note[]> => {
-    return await mockNoteService.searchNotes(query);
+    const res = await api.get('/notes/search', { params: { query } });
+    return res.data;
   },
 };
 

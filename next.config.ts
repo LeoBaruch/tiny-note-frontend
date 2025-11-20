@@ -2,7 +2,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: 'export',
   basePath: '/tiny-note',
   assetPrefix: '/tiny-note',
   // 开发模式下启用准确的 sourcemap
