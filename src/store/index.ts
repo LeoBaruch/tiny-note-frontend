@@ -13,7 +13,6 @@ interface AuthState {
 
 interface NoteState {
   notes: Note[];
-  currentNote: Note | null;
   tags: Tag[];
   categories: Category[];
   isLoading: boolean;
@@ -21,7 +20,6 @@ interface NoteState {
   addNote: (note: Note) => void;
   updateNote: (id: string, updates: Partial<Note>) => void;
   deleteNote: (id: string) => void;
-  setCurrentNote: (note: Note | null) => void;
   setTags: (tags: Tag[]) => void;
   setCategories: (categories: Category[]) => void;
   setLoading: (loading: boolean) => void;
@@ -56,7 +54,6 @@ export const useAuthStore = create<AuthState>()(
 
 export const useNoteStore = create<NoteState>((set) => ({
   notes: [],
-  currentNote: null,
   tags: [],
   categories: [],
   isLoading: false,
@@ -68,18 +65,11 @@ export const useNoteStore = create<NoteState>((set) => ({
       notes: state.notes.map((note) =>
         note.id === id ? { ...note, ...updates } : note
       ),
-      currentNote:
-        state.currentNote?.id === id
-          ? { ...state.currentNote, ...updates }
-          : state.currentNote,
     })),
   deleteNote: (id) =>
     set((state) => ({
       notes: state.notes.filter((note) => note.id !== id),
-      currentNote:
-        state.currentNote?.id === id ? null : state.currentNote,
     })),
-  setCurrentNote: (note) => set({ currentNote: note }),
   setTags: (tags) => set({ tags }),
   setCategories: (categories) => set({ categories }),
   setLoading: (loading) => set({ isLoading: loading }),
