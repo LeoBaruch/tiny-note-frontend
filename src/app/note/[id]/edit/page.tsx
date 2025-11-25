@@ -101,7 +101,7 @@ export default function EditNotePage() {
       };
       updateNoteInStore(noteId, normalizedNote);
       message.success('笔记更新成功！');
-      router.push(`/note/${noteId}`);
+      router.push(`/note/${noteId}/detail`);
     } catch (error: any) {
       console.error('Failed to update note:', error);
       message.error(error.response?.data?.message || '更新笔记失败');

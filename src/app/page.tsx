@@ -102,7 +102,7 @@ export default function HomePage() {
   };
 
   const handleViewNote = (note: Note) => {
-    router.push(`/note/${note.id}`);
+    router.push(`/note/${note.id}/detail`);
   };
 
   const handleDeleteNote = async (noteId: string) => {
