@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import {
+  App,
   Card,
   Form,
   Input,
   Button,
   Select,
   Switch,
-  message,
   Space,
   Typography,
   Spin,
@@ -39,6 +39,7 @@ export default function EditNotePage() {
   const [content, setContent] = useState<CustomElement[]>(DEFAULT_NOTE_CONTENT);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const { message } = App.useApp();
 
   useEffect(() => {
     const fetchNote = async () => {

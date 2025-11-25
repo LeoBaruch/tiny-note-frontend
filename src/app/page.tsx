@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
+  App,
   Card, 
   List, 
   Button, 
@@ -11,7 +12,6 @@ import {
   Typography, 
   Empty, 
   Spin,
-  message,
   Popconfirm,
   Tooltip
 } from 'antd';
@@ -37,6 +37,7 @@ export default function HomePage() {
   const searchParams = useSearchParams();
   const { token } = useAuthStore();
   const { notes, setNotes, deleteNote } = useNoteStore();
+  const { message } = App.useApp();
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredNotes, setFilteredNotes] = useState<Note[]>([]);
   const [pageLoading, setPageLoading] = useState(false);
@@ -110,6 +111,7 @@ export default function HomePage() {
       await noteAPI.deleteNote(noteId);
       deleteNote(noteId);
       message.success('笔记删除成功');
+      loadNotes();
     } catch {
       message.error('删除笔记失败');
     }

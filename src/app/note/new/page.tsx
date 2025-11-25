@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, Form, Input, Button, Select, Switch, message, Space, Typography } from 'antd';
+import { App, Card, Form, Input, Button, Select, Switch, Space, Typography } from 'antd';
 import { SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import { useAuthStore, useNoteStore } from '@/store';
 import { noteAPI } from '@/services/api';
@@ -23,6 +23,7 @@ export default function NewNotePage() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [content, setContent] = useState<CustomElement[]>(DEFAULT_NOTE_CONTENT);
+  const { message } = App.useApp();
 
   const onFinish = async (values: CreateNoteFormValues) => {
     if (!user) {

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { App as AntdApp, ConfigProvider } from 'antd';
 import { useAuthStore, useUIStore } from '@/store';
 import SideBar from "@/components/sideBar";
 import './index.scss';
@@ -52,29 +53,27 @@ export default function Container({ children }: { children: React.ReactNode }) {
     }
   }, [isHydrated, token, pathname, router]);
 
-  // 如果是公开页面，不显示侧边栏
-  if (publicPages.includes(pathname)) {
-    return <>{children}</>;
-  }
+  const isPublicPage = publicPages.includes(pathname);
+  let content: React.ReactNode = null;
 
-  // 等待水合完成
-  if (!isHydrated) {
-    return null;
-  }
-
-  // 如果未认证，显示加载状态
-  if (!token) {
-    return null;
+  if (isPublicPage) {
+    content = children;
+  } else if (isHydrated && token) {
+    content = (
+      <div id="root" className={styles.container}>
+        <div className={`${styles.lefts} ${sidebarCollapsed ? styles.collapsed : ''}`}>
+          <SideBar />
+        </div>
+        <div className={`${styles.main} ${sidebarCollapsed ? styles.expanded : ''}`}>
+          {children}
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div id="root" className={styles.container}>
-      <div className={`${styles.lefts} ${sidebarCollapsed ? styles.collapsed : ''}`}>
-        <SideBar />
-      </div>
-      <div className={`${styles.main} ${sidebarCollapsed ? styles.expanded : ''}`}>
-        {children}
-      </div>
-    </div>
+    <ConfigProvider>
+      <AntdApp>{content}</AntdApp>
+    </ConfigProvider>
   );
 }

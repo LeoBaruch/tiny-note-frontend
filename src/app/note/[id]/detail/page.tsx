@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState } from 'react';
 import {
+  App,
   Card,
   Button,
   Space,
   Typography,
   Spin,
   Tag,
-  message,
   Divider,
 } from 'antd';
 import {
@@ -38,6 +38,7 @@ export default function NoteDetailPage() {
   const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState<any[]>([]);
+  const { message } = App.useApp();
 
   useEffect(() => {
     const fetchNote = async () => {

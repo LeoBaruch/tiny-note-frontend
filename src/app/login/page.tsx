@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Form, Input, Button, Card, message, Typography, Divider } from 'antd';
+import { App, Form, Input, Button, Card, Typography, Divider } from 'antd';
 import { LockOutlined, MailOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { login, setUser } = useAuthStore();
+  const { message } = App.useApp();
 
   const onFinish = async (values: LoginForm) => {
     try {
